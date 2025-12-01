@@ -1,50 +1,81 @@
-"""Motor principal do jogo"""
+"""Motor do jogo"""
 import random
 from game.config import *
-from game.dino import Dino
-from game.obstacle import Obstacle
 
 class GameEngine:
+    """Motor principal do jogo"""
+    
     def __init__(self):
-        self.reset()
+        """Inicializa motor do jogo"""
+        from game.obstacle import Obstacle
+        self.Obstacle = Obstacle
+        
+        self.obstacles = []
+        self.score = 0
+        self.speed = INITIAL_SPEED
+        self.distance_since_last_obstacle = 0
+        # Distância inicial maior para dar tempo de começar
+        self.next_obstacle_distance = 400
         
     def reset(self):
-        """Reseta o estado do jogo"""
-        self.speed = INITIAL_SPEED
+        """Reinicia o jogo"""
         self.obstacles = []
-        self.distance_to_next_obstacle = random.randint(300, 500)
         self.score = 0
+        self.speed = INITIAL_SPEED
+        self.distance_since_last_obstacle = 0
+        self.next_obstacle_distance = 400
         
     def update(self):
-        """Atualiza o estado do jogo"""
-        # Incrementa velocidade gradualmente
-        self.speed = min(self.speed + SPEED_INCREMENT, MAX_SPEED)
+        """Atualiza estado do jogo"""
+        # Atualiza velocidade gradualmente
+        if self.speed < MAX_SPEED:
+            self.speed += SPEED_INCREMENT
+            
+        # Atualiza score
         self.score += 1
         
         # Atualiza obstáculos existentes
         for obstacle in self.obstacles:
             obstacle.update(self.speed)
             
-        # Remove obstáculos que saíram da tela
-        self.obstacles = [obs for obs in self.obstacles if not obs.is_off_screen()]
+        # Remove obstáculos fora da tela
+        self.obstacles = [obs for obs in self.obstacles if not obs.off_screen()]
         
-        # Adiciona novos obstáculos
-        self.distance_to_next_obstacle -= self.speed
-        if self.distance_to_next_obstacle <= 0:
-            self.obstacles.append(Obstacle(SCREEN_WIDTH))
-            self.distance_to_next_obstacle = random.randint(OBSTACLE_MIN_GAP, OBSTACLE_MAX_GAP)
+        # Cria novos obstáculos
+        self.distance_since_last_obstacle += self.speed
+        
+        if self.distance_since_last_obstacle >= self.next_obstacle_distance:
+            # TAMANHOS ORIGINAIS DOS RETÂNGULOS VERMELHOS
+            height = random.randint(40, 70)  # Altura original: 40-70
+            width = random.randint(20, 35)   # Largura original: 20-35
+            obstacle = self.Obstacle(SCREEN_WIDTH + 50, height, width)
+            self.obstacles.append(obstacle)
             
-    def check_collision(self, dino):
-        """Verifica colisão entre dinossauro e obstáculos"""
-        dino_rect = dino.get_rect()
-        for obstacle in self.obstacles:
-            if dino_rect.colliderect(obstacle.get_rect()):
-                return True
-        return False
-        
+            self.distance_since_last_obstacle = 0
+            # FREQUÊNCIA ORIGINAL: 250-450 pixels entre obstáculos
+            self.next_obstacle_distance = random.randint(250, 450)
+            
     def get_next_obstacle(self):
-        """Retorna o próximo obstáculo relevante"""
+        """Retorna o próximo obstáculo mais próximo"""
+        if not self.obstacles:
+            return None
+            
+        # Obstáculos à frente do dinossauro
+        ahead_obstacles = [obs for obs in self.obstacles if obs.x > 50]
+        
+        if not ahead_obstacles:
+            return None
+            
+        return min(ahead_obstacles, key=lambda obs: obs.x)
+        
+    def check_collision(self, dino):
+        """Verifica colisão com dinossauro"""
+        dino_rect = dino.get_rect()
+        
         for obstacle in self.obstacles:
-            if obstacle.x + obstacle.width > DINO_X:
-                return obstacle
-        return None
+            obstacle_rect = obstacle.get_rect()
+            
+            if dino_rect.colliderect(obstacle_rect):
+                return True
+                
+        return False
