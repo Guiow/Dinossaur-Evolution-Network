@@ -1,95 +1,22 @@
 {
   "sessions": {
-    "session_20251201_114359": {
-      "session_id": "session_20251201_114359",
-      "start_time": "2025-12-01 11:43:59",
-      "end_time": "2025-12-01 11:50:56",
-      "start_generation": 55,
-      "end_generation": 56,
-      "best_fitness": 14237,
-      "best_generation": 55,
-      "avg_fitness": 2280.36,
-      "model_file": "session_20251201_114359_best.pkl",
-      "total_generations": 2,
-      "continued_from_generation": 55
-    },
-    "session_20251201_153257": {
-      "session_id": "session_20251201_153257",
-      "start_time": "2025-12-01 15:32:57",
-      "end_time": "2025-12-01 15:36:24",
-      "start_generation": 56,
-      "end_generation": 57,
-      "best_fitness": 6253,
-      "best_generation": 57,
-      "avg_fitness": 1561.1,
-      "model_file": "session_20251201_153257_best.pkl",
-      "total_generations": 2
-    },
-    "session_20251201_153734": {
-      "session_id": "session_20251201_153734",
-      "start_time": "2025-12-01 15:37:34",
-      "end_time": "2025-12-01 15:37:38",
-      "start_generation": 58,
-      "end_generation": 58,
-      "best_fitness": 0,
-      "best_generation": 58,
-      "avg_fitness": 0,
-      "model_file": "session_20251201_153734_best.pkl",
-      "total_generations": 0
-    },
-    "session_20251201_153753": {
-      "session_id": "session_20251201_153753",
-      "start_time": "2025-12-01 15:37:53",
-      "end_time": "2025-12-01 15:43:08",
-      "start_generation": 58,
-      "end_generation": 67,
-      "best_fitness": 3869,
-      "best_generation": 65,
-      "avg_fitness": 765.38,
-      "model_file": "session_20251201_153753_best.pkl",
-      "total_generations": 10
-    },
-    "session_20251201_154454": {
-      "session_id": "session_20251201_154454",
-      "start_time": "2025-12-01 15:44:54",
-      "end_time": "2025-12-01 15:46:57",
-      "start_generation": 66,
-      "end_generation": 66,
-      "best_fitness": 7148,
-      "best_generation": 66,
-      "avg_fitness": 1927.46,
-      "model_file": "session_20251201_154454_best.pkl",
-      "total_generations": 1
-    },
-    "session_20251201_154915": {
-      "session_id": "session_20251201_154915",
-      "start_time": "2025-12-01 15:49:15",
-      "end_time": "2025-12-01 15:49:19",
+    "session_20251201_182207": {
+      "session_id": "session_20251201_182207",
+      "start_time": "2025-12-01 18:22:07",
+      "end_time": "2025-12-01 18:24:45",
       "start_generation": 1,
-      "end_generation": 1,
-      "best_fitness": 229,
-      "best_generation": 1,
-      "avg_fitness": 147.36,
-      "model_file": "session_20251201_154915_best.pkl",
-      "total_generations": 1
-    },
-    "session_20251201_155033": {
-      "session_id": "session_20251201_155033",
-      "start_time": "2025-12-01 15:50:33",
-      "end_time": "2025-12-01 15:51:43",
-      "start_generation": 66,
-      "end_generation": 66,
-      "best_fitness": 4220,
-      "best_generation": 66,
-      "avg_fitness": 769.62,
-      "model_file": "session_20251201_155033_best.pkl",
-      "total_generations": 1
+      "end_generation": 20,
+      "best_fitness": 1462,
+      "best_generation": 20,
+      "avg_fitness": 184.87600000000006,
+      "model_file": "session_20251201_182207_best.pkl",
+      "total_generations": 20
     }
   },
   "global_best": {
-    "session_id": "session_20251201_114359",
-    "fitness": 14237,
-    "generation": 55,
-    "model_file": "session_20251201_114359_best.pkl"
+    "session_id": "session_20251201_182207",
+    "fitness": 1462,
+    "generation": 20,
+    "model_file": "session_20251201_182207_best.pkl"
   }
 }

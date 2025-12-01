@@ -3,6 +3,7 @@ import numpy as np
 from game.dino import Dino
 from ai.neural_network import NeuralNetwork
 
+
 class Agent:
     def __init__(self, neural_network):
         self.dino = Dino()
@@ -33,6 +34,7 @@ class Agent:
     def get_fitness(self):
         """Retorna fitness do agente"""
         return self.dino.fitness
+
 
 class Population:
     def __init__(self, size, input_size, hidden_size, output_size):

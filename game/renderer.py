@@ -2,6 +2,7 @@
 import pygame
 from game.config import *
 
+
 class Renderer:
     def __init__(self, screen):
         self.screen = screen
@@ -45,7 +46,7 @@ class Renderer:
         self.screen.fill((20, 20, 35))
         
         # === FUNDO CINZA CLARO ===
-        self.game_surface.fill((245, 245, 245))  # Cinza muito claro (quase branco)
+        self.game_surface.fill((245, 245, 245))
         
         # === CHÃO ===
         ground_y = GROUND_Y + 50

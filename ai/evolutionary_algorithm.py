@@ -3,14 +3,17 @@ import numpy as np
 from ai.population import Population, Agent
 from ai.neural_network import NeuralNetwork
 
+
 class EvolutionaryAlgorithm:
     def __init__(self, population_size, input_size, hidden_size, output_size,
-                 mutation_rate=0.2, mutation_strength=0.5, elite_ratio=0.1):
+                 mutation_rate=0.2, mutation_strength=0.5, elite_ratio=0.1,
+                 start_generation=1):
         """
         population_size: tamanho da população
         mutation_rate: probabilidade inicial de mutação
         mutation_strength: força inicial da mutação
         elite_ratio: proporção de elite preservada (top performers)
+        start_generation: geração inicial (para continuar treinamento)
         """
         self.population_size = population_size
         self.input_size = input_size
@@ -25,7 +28,7 @@ class EvolutionaryAlgorithm:
         
         self.population = Population(population_size, input_size, 
                                      hidden_size, output_size)
-        self.generation = 1
+        self.generation = start_generation
         self.best_fitness_history = []
         self.avg_fitness_history = []
         self.species_diversity = []
@@ -34,11 +37,12 @@ class EvolutionaryAlgorithm:
         print(f"   População: {population_size}")
         print(f"   Elite: {self.elite_count} ({elite_ratio*100:.0f}%)")
         print(f"   Taxa de Mutação: {mutation_rate}")
-        print(f"   Arquitetura: {input_size}-{hidden_size}-{output_size}\n")
+        print(f"   Arquitetura: {input_size}-{hidden_size}-{output_size}")
+        print(f"   Geração inicial: {start_generation}\n")
         
     def evolve(self):
         """
-        Evolução real: seleção natural, reprodução e mutação
+        Evolução CONSERVADORA: Preserva o que funciona, explora gradualmente
         """
         # Ordena população por fitness (melhor → pior)
         self.population.agents.sort(key=lambda x: x.get_fitness(), reverse=True)
@@ -61,45 +65,68 @@ class EvolutionaryAlgorithm:
               f"Diversidade: {diversity:.3f} | "
               f"Mut: {self.mutation_rate:.3f}")
         
-        # ===== SELEÇÃO NATURAL =====
-        # Elite: os melhores sobrevivem automaticamente
+        # ===== ESTRATÉGIA CONSERVADORA =====
+        best_parent_brain = self.population.agents[0].brain
+        
         new_population = []
         
-        # Preserva a elite (cópias exatas dos melhores)
-        for i in range(self.elite_count):
-            elite_brain = self.population.agents[i].brain.copy()
-            new_population.append(Agent(elite_brain))
+        # 1. UMA cópia EXATA do melhor (0% mutação)
+        new_population.append(Agent(best_parent_brain.copy()))
+        
+        # 2. 60% da população: Mutação MUITO LEVE (apenas refinamento)
+        # Esses são os filhos que vão MANTER o comportamento do pai
+        num_conservative = int(self.population_size * 0.6)
+        for _ in range(num_conservative):
+            if len(new_population) >= self.population_size:
+                break
+            child_brain = best_parent_brain.copy()
+            weights = child_brain.get_weights()
             
-        # ===== REPRODUÇÃO =====
-        # Gera o resto da população por reprodução sexual
+            # Apenas 10% dos genes mutam, com força 0.15
+            mutation_mask = np.random.rand(len(weights)) < 0.1
+            mutations = np.random.randn(len(weights)) * 0.15
+            weights += mutation_mask * mutations
+            
+            child_brain.set_weights(weights)
+            new_population.append(Agent(child_brain))
+        
+        # 3. 25% da população: Mutação MODERADA (exploração local)
+        num_moderate = int(self.population_size * 0.25)
+        for _ in range(num_moderate):
+            if len(new_population) >= self.population_size:
+                break
+            child_brain = best_parent_brain.copy()
+            weights = child_brain.get_weights()
+            
+            # 25% dos genes mutam, força 0.3
+            mutation_mask = np.random.rand(len(weights)) < 0.25
+            mutations = np.random.randn(len(weights)) * 0.3
+            weights += mutation_mask * mutations
+            
+            child_brain.set_weights(weights)
+            new_population.append(Agent(child_brain))
+        
+        # 4. 15% restante: Mutação FORTE (exploração)
         while len(new_population) < self.population_size:
-            # Seleção dos pais (baseada em fitness)
-            parent1 = self._fitness_proportionate_selection(fitnesses)
-            parent2 = self._fitness_proportionate_selection(fitnesses)
+            child_brain = best_parent_brain.copy()
+            weights = child_brain.get_weights()
             
-            # Garante pais diferentes
-            attempts = 0
-            while parent1 == parent2 and attempts < 10:
-                parent2 = self._fitness_proportionate_selection(fitnesses)
-                attempts += 1
+            # 40% dos genes mutam, força 0.5
+            mutation_mask = np.random.rand(len(weights)) < 0.4
+            mutations = np.random.randn(len(weights)) * 0.5
+            weights += mutation_mask * mutations
             
-            # Crossover (reprodução sexual)
-            child_brain = self._crossover(
-                self.population.agents[parent1].brain,
-                self.population.agents[parent2].brain
-            )
-            
-            # Mutação
-            self._mutate(child_brain)
-            
+            child_brain.set_weights(weights)
             new_population.append(Agent(child_brain))
         
         # ===== ATUALIZAÇÃO =====
         self.population.agents = new_population
-        self.generation += 1
         
-        # Mutação adaptativa: diminui com o tempo se convergindo
+        # Mutação adaptativa (agora mais conservadora)
         self._adaptive_mutation(best_fitness, avg_fitness, diversity)
+        
+        # Incrementa geração
+        self.generation += 1
         
     def _fitness_proportionate_selection(self, fitnesses):
         """
@@ -185,56 +212,39 @@ class EvolutionaryAlgorithm:
         
     def _mutate(self, brain):
         """
-        Mutação genética (variação aleatória)
+        Mutação genética
         """
         weights = brain.get_weights()
         
-        # Máscara de mutação: quais genes sofrerão mutação
+        # Máscara de mutação
         mutation_mask = np.random.rand(len(weights)) < self.mutation_rate
         
-        # Tipos de mutação
-        mutation_type = np.random.choice(['gaussian', 'uniform', 'reset'])
-        
-        if mutation_type == 'gaussian':
-            # Mutação gaussiana (pequenas variações)
-            mutations = np.random.randn(len(weights)) * self.mutation_strength
-            weights += mutation_mask * mutations
-            
-        elif mutation_type == 'uniform':
-            # Mutação uniforme
-            mutations = np.random.uniform(-self.mutation_strength, 
-                                         self.mutation_strength, 
-                                         len(weights))
-            weights += mutation_mask * mutations
-            
-        elif mutation_type == 'reset':
-            # Mutação por reset (alguns genes resetam completamente)
-            reset_mask = mutation_mask & (np.random.rand(len(weights)) < 0.1)
-            new_values = np.random.randn(len(weights)) * 0.5
-            weights = np.where(reset_mask, new_values, weights)
+        # Mutação gaussiana
+        mutations = np.random.randn(len(weights)) * self.mutation_strength
+        weights += mutation_mask * mutations
         
         brain.set_weights(weights)
     
     def _adaptive_mutation(self, best_fitness, avg_fitness, diversity):
         """
-        Mutação adaptativa: ajusta taxa baseada no progresso
+        Mutação adaptativa CONSERVADORA
         """
-        # Se diversidade muito baixa, aumenta mutação
-        if diversity < 0.1:
-            self.mutation_rate = min(0.5, self.mutation_rate * 1.2)
-            self.mutation_strength = min(1.0, self.mutation_strength * 1.1)
+        # Se diversidade muito baixa, aumenta mutação (mas não muito)
+        if diversity < 0.05:
+            self.mutation_rate = min(0.3, self.mutation_rate * 1.1)
+            self.mutation_strength = min(0.5, self.mutation_strength * 1.05)
             
-        # Se está estagnado (sem melhoria), aumenta mutação
-        elif len(self.best_fitness_history) > 5:
-            recent_best = self.best_fitness_history[-5:]
+        # Se está estagnado, aumenta mutação levemente
+        elif len(self.best_fitness_history) > 10:
+            recent_best = self.best_fitness_history[-10:]
             improvement = (recent_best[-1] - recent_best[0]) / (recent_best[0] + 1)
             
-            if improvement < 0.01:  # Menos de 1% de melhoria
-                self.mutation_rate = min(0.4, self.mutation_rate * 1.1)
+            if improvement < 0.05:  # Menos de 5% de melhoria em 10 gerações
+                self.mutation_rate = min(0.25, self.mutation_rate * 1.05)
             else:
                 # Está progredindo, diminui mutação gradualmente
-                self.mutation_rate = max(0.05, self.mutation_rate * 0.995)
-                self.mutation_strength = max(0.1, self.mutation_strength * 0.995)
+                self.mutation_rate = max(0.05, self.mutation_rate * 0.98)
+                self.mutation_strength = max(0.1, self.mutation_strength * 0.98)
     
     def _calculate_genetic_diversity(self):
         """

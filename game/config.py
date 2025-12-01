@@ -12,7 +12,7 @@ DINO_X = 100
 
 # Velocidade do jogo
 INITIAL_SPEED = 8
-SPEED_INCREMENT = 0.0025
+SPEED_INCREMENT = 0.003
 MAX_SPEED = 100
 
 # Obstáculos

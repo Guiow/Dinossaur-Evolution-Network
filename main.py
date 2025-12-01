@@ -11,6 +11,7 @@ from ai.neural_network import NeuralNetwork
 from ai.population import Agent
 from ui.gui_components import Button, ScrollableList, InfoBox
 
+
 class DinoAIApp:
     """Aplicação principal com interface gráfica"""
     
@@ -148,22 +149,21 @@ class DinoAIApp:
         start_x = 50
         
         new_train_button = Button(start_x, button_y, 240, 60, 
-                                  "TREINAR DO ZERO", (50, 150, 100), (70, 180, 130))
+                                "TREINAR DO ZERO", (50, 150, 100), (70, 180, 130))
         start_selected_button = Button(start_x + 250, button_y, 240, 60,
-                                      "INICIAR", (100, 150, 200), (130, 180, 230))
+                                    "INICIAR", (100, 150, 200), (130, 180, 230))
         delete_button = Button(start_x + 500, button_y, 240, 60,
-                              "APAGAR", (200, 50, 50), (230, 70, 70))
+                            "APAGAR", (200, 50, 50), (230, 70, 70))
         back_button = Button(start_x + 750, button_y, 240, 60,
                             "VOLTAR", (100, 100, 100), (130, 130, 130))
         
         # Lista de sessões com mais espaço para botões
-        list_height = height - 320  # Mais espaço abaixo
+        list_height = height - 320
         session_list = None
         selected_session_id = None
         
         if sessions:
-            session_list = ScrollableList(50, 230, width - 100, list_height, 
-                                         sessions, selected_session_id)
+            session_list = ScrollableList(50, 230, width - 100, list_height, sessions, selected_session_id)
         
         running = True
         while running:
@@ -212,8 +212,21 @@ class DinoAIApp:
                 if start_selected_button.handle_event(event) and selected_session_id:
                     try:
                         model_data = self.session_manager.load_session_model(selected_session_id)
-                        return model_data, model_data['generation'] + 1
-                    except:
+                        session_data = self.session_manager.sessions_history["sessions"][selected_session_id]
+                        
+                        # ✅ CORRIGIDO: Usa end_generation da sessão, não a geração do modelo
+                        # O modelo guarda a geração do melhor fitness
+                        # Mas queremos continuar da última geração treinada
+                        start_gen = session_data['end_generation']
+                        
+                        print(f"\n✓ Carregando sessão {selected_session_id}")
+                        print(f"  Melhor fitness alcançado: {model_data['fitness']:.0f} (geração {model_data['generation']})")
+                        print(f"  Última geração treinada: {session_data['end_generation']}")
+                        print(f"  Iniciando da geração: {start_gen}")
+                        
+                        return model_data, start_gen
+                    except Exception as e:
+                        print(f"Erro ao carregar: {e}")
                         pass
                 
                 if delete_button.handle_event(event) and selected_session_id:
@@ -224,7 +237,7 @@ class DinoAIApp:
                         
                         if sessions:
                             session_list = ScrollableList(50, 230, width - 100, list_height, 
-                                                         sessions, None)
+                                                        sessions, None)
                         else:
                             session_list = None
                         
@@ -456,6 +469,7 @@ class DinoAIApp:
         
         pygame.quit()
         sys.exit()
+
 
 if __name__ == "__main__":
     app = DinoAIApp()
